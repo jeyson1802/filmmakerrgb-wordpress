@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db_filmmakerrgb:
+    image: mysql:8.0
+    container_name: db_filmmakerrgb
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=wordpress
+    volumes:
+      - ./dbdata_filmmakerrgb:/var/lib/mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - filmmakerrgb-network
+
+  wordpress_filmmakerrgb:
+    depends_on:
+      - db_filmmakerrgb
+    image: wordpress:5.8.2
+    container_name: wordpress_filmmakerrgb
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 9092:80
+    environment:
+      - WORDPRESS_DB_HOST=db_filmmakerrgb:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - ./uploads.ini.filmmakerrgb:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wordpress_filmmakerrgb:/var/www/html
+    networks:
+      - filmmakerrgb-network
+  
+networks:
+  filmmakerrgb-network:
+    driver: bridge  
